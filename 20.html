@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SFA Enterprise Store</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { purple: { 900: '#1a0033', 800: '#2d004d', 600: '#6600cc' } } } } }
+    </script>
+    <style>
+        /* تأثيرات RGB الفخمة */
+        .rgb-border {
+            position: relative;
+            background: var(--bg-color);
+            border-radius: 12px;
+        }
+        .rgb-border::before {
+            content: "";
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, #ff00cc, #3333ff, #ff00cc, #3333ff);
+            background-size: 400%;
+            z-index: -1;
+            filter: blur(5px);
+            border-radius: 14px;
+            animation: glowing 20s linear infinite;
+            opacity: 0.7;
+        }
+        @keyframes glowing { 0% { background-position: 0 0; } 50% { background-position: 400% 0; } 100% { background-position: 0 0; } }
+        body.dark { --bg-color: #1a0033; color: white; }
+        body.light { --bg-color: #f3f4f6; color: #1a0033; }
+        .glass-panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .dark .glass-panel { background: rgba(0, 0, 0, 0.3); }
+    </style>
+</head>
+<body class="dark bg-purple-900 transition-colors duration-300 min-h-screen font-sans pb-24">
+
+    <div class="flex justify-between items-center p-4 glass-panel sticky top-0 z-50">
+        <button id="toggleLang" class="font-bold text-sm bg-purple-600 px-3 py-1 rounded-full text-white">English</button>
+        <h1 id="storeTitle" class="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-violet-500">SFA PLUS</h1>
+        <button id="toggleTheme" class="font-bold text-sm bg-gray-700 text-white px-3 py-1 rounded-full">☀️/🌙</button>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="https://t.me/sjwde" target="_blank" class="inline-block bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg font-bold text-sm rgb-border">
+            <span id="supportText">For support @sjwde</span>
+        </a>
+    </div>
+
+    <div class="p-4 space-y-6 mt-4">
+        
+        <div class="rgb-border p-4 glass-panel rounded-xl flex justify-between items-center">
+            <div>
+                <h2 class="text-xl font-bold">iPhone Plus </h2>
+                <p class="text-sm opacity-80" id="price-iphone">السعر: 6$</p>
+            </div>
+            <div class="flex items-center space-x-3 rtl:space-x-reverse">
+                <button onclick="updateCart('iphone', -1)" class="bg-red-500 w-8 h-8 rounded-full font-bold">-</button>
+                <span id="qty-iphone" class="font-bold text-lg">0</span>
+                <button onclick="updateCart('iphone', 1)" class="bg-green-500 w-8 h-8 rounded-full font-bold">+</button>
+            </div>
+        </div>
+
+        <div class="rgb-border p-4 glass-panel rounded-xl flex justify-between items-center">
+            <div>
+                <h2 class="text-xl font-bold">iPad Plus 📱</h2>
+                <p class="text-sm opacity-80" id="price-ipad">السعر: 4$</p>
+            </div>
+            <div class="flex items-center space-x-3 rtl:space-x-reverse">
+                <button onclick="updateCart('ipad', -1)" class="bg-red-500 w-8 h-8 rounded-full font-bold">-</button>
+                <span id="qty-ipad" class="font-bold text-lg">0</span>
+                <button onclick="updateCart('ipad', 1)" class="bg-green-500 w-8 h-8 rounded-full font-bold">+</button>
+            </div>
+        </div>
+
+        <div class="rgb-border p-4 glass-panel rounded-xl flex justify-between items-center">
+            <div>
+                <h2 class="text-xl font-bold">Android Plus 🤖</h2>
+                <p class="text-sm opacity-80" id="price-android">السعر: 4.5$</p>
+            </div>
+            <div class="flex items-center space-x-3 rtl:space-x-reverse">
+                <button onclick="updateCart('android', -1)" class="bg-red-500 w-8 h-8 rounded-full font-bold">-</button>
+                <span id="qty-android" class="font-bold text-lg">0</span>
+                <button onclick="updateCart('android', 1)" class="bg-green-500 w-8 h-8 rounded-full font-bold">+</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="fixed bottom-0 left-0 right-0 glass-panel p-4 rounded-t-2xl shadow-2xl">
+        <div class="flex justify-between items-center mb-2">
+            <span class="font-bold text-lg" id="totalText">الإجمالي:</span>
+            <div class="text-left">
+                <span id="totalPrice" class="font-extrabold text-2xl text-green-400">0.00$</span>
+                <p id="discountLabel" class="text-xs text-pink-400 font-bold hidden">تم تطبيق الخصم!</p>
+            </div>
+        </div>
+        <button id="checkoutBtn" onclick="checkout()" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 rounded-xl shadow-lg opacity-50 cursor-not-allowed" disabled>إتمام الشراء</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        let cart = { iphone: 0, ipad: 0, android: 0 };
+        const prices = { iphone: 6, ipad: 4, android: 4.5 };
+        const minPrices = { iphone: 4.5, ipad: 3, android: 3 }; // الحد الأدنى بعد الخصم
+        
+        let isArabic = true;
+
+        const texts = {
+            ar: { title: "SFA PLUS", price: "السعر:", support: "للدعم الفني @sjwde", total: "الإجمالي:", checkout: "إتمام الشراء", discount: "تم تطبيق الخصم!" },
+            en: { title: "SFA PLUS", price: "Price:", support: "For support @sjwde", total: "Total:", checkout: "Checkout", discount: "Discount Applied!" }
+        };
+
+        // تبديل الثيم
+        document.getElementById('toggleTheme').onclick = () => {
+            document.body.classList.toggle('dark');
+            document.body.classList.toggle('light');
+            document.body.classList.toggle('bg-purple-900');
+            document.body.classList.toggle('bg-gray-100');
+        };
+
+        // تبديل اللغة
+        document.getElementById('toggleLang').onclick = () => {
+            isArabic = !isArabic;
+            document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
+            document.getElementById('toggleLang').innerText = isArabic ? "English" : "عربي";
+            document.getElementById('supportText').innerText = texts[isArabic ? 'ar' : 'en'].support;
+            document.getElementById('totalText').innerText = texts[isArabic ? 'ar' : 'en'].total;
+            document.getElementById('checkoutBtn').innerText = texts[isArabic ? 'ar' : 'en'].checkout;
+            document.getElementById('discountLabel').innerText = texts[isArabic ? 'ar' : 'en'].discount;
+            updateDisplay();
+        };
+
+        function updateCart(item, change) {
+            if (cart[item] + change >= 0) {
+                cart[item] += change;
+                document.getElementById(`qty-${item}`).innerText = cart[item];
+                calculateTotal();
+            }
+        }
+
+        function calculateTotal() {
+            let totalQty = cart.iphone + cart.ipad + cart.android;
+            let discountPercent = 0;
+
+            if (totalQty >= 10) discountPercent = 0.25; // 25%
+            else if (totalQty >= 5) discountPercent = 0.10; // 10%
+
+            let finalTotal = 0;
+            
+            for (let item in cart) {
+                let qty = cart[item];
+                if (qty > 0) {
+                    let priceAfterDiscount = prices[item] * (1 - discountPercent);
+                    // التأكد أن السعر لا يقل عن الحد الأدنى
+                    if (priceAfterDiscount < minPrices[item]) priceAfterDiscount = minPrices[item];
+                    finalTotal += (priceAfterDiscount * qty);
+                }
+            }
+
+            document.getElementById('totalPrice').innerText = finalTotal.toFixed(2) + "$";
+            
+            const btn = document.getElementById('checkoutBtn');
+            const discLabel = document.getElementById('discountLabel');
+
+            if (totalQty > 0) {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                if(discountPercent > 0) discLabel.classList.remove('hidden');
+                else discLabel.classList.add('hidden');
+            } else {
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+                discLabel.classList.add('hidden');
+            }
+        }
+
+        function updateDisplay() {
+            document.getElementById('price-iphone').innerText = `${texts[isArabic ? 'ar' : 'en'].price} ${prices.iphone}$`;
+            document.getElementById('price-ipad').innerText = `${texts[isArabic ? 'ar' : 'en'].price} ${prices.ipad}$`;
+            document.getElementById('price-android').innerText = `${texts[isArabic ? 'ar' : 'en'].price} ${prices.android}$`;
+        }
+
+        function checkout() {
+            let totalQty = cart.iphone + cart.ipad + cart.android;
+            if (totalQty === 0) return;
+            
+            const payload = {
+                cart: cart,
+                totalItems: totalQty
+            };
+            tg.sendData(JSON.stringify(payload));
+        }
+
+        updateDisplay();
+    </script>
+</body>
+</html>
