@@ -3,193 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SFA PLUS Store</title>
+    <title>SFA Plus Store</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: #ffffff;
-            --text-color: #000000;
-            --card-bg: #f5f5f5;
-            --btn-bg: #0088cc;
-            --btn-text: #ffffff;
+            --bg-color: #0c001f; --card-bg: #160036; --primary: #8a2be2;
+            --text-color: #ffffff; --sub-text: #b19ffb; --border-glow: 0 0 12px #8a2be2;
         }
-        body.dark-theme {
-            --bg-color: #1a1a1a;
-            --text-color: #ffffff;
-            --card-bg: #2d2d2d;
-            --btn-bg: #1da1f2;
+        .light-theme {
+            --bg-color: #f5f6fa; --card-bg: #ffffff; --primary: #6c5ce7;
+            --text-color: #2d3436; --sub-text: #636e72; --border-glow: 0 4px 10px rgba(108, 92, 231, 0.15);
         }
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: Arial, sans-serif;
-            margin: 0; padding: 15px;
-            transition: 0.3s;
-        }
-        .header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding-bottom: 15px; border-bottom: 1px solid #ccc; margin-bottom: 20px;
-        }
-        .controls span {
-            cursor: pointer; padding: 5px 10px; background: var(--card-bg);
-            border-radius: 5px; margin-left: 5px; font-weight: bold;
-        }
-        .wallet-info { text-align: center; margin-bottom: 20px; font-size: 18px; font-weight: bold; }
-        .product {
-            background-color: var(--card-bg); padding: 15px; margin-bottom: 15px;
-            border-radius: 10px; display: flex; justify-content: space-between; align-items: center;
-        }
-        .product-info h3 { margin: 0 0 5px 0; font-size: 16px; }
-        .stock-badge { font-size: 12px; color: #ff9800; }
-        .qty-controls { display: flex; align-items: center; gap: 10px; }
-        .qty-controls button {
-            background: var(--btn-bg); color: var(--btn-text);
-            border: none; border-radius: 50%; width: 30px; height: 30px; font-size: 18px; cursor: pointer;
-        }
-        .cart-summary {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: var(--card-bg); padding: 15px; box-sizing: border-box;
-            border-top: 2px solid var(--btn-bg); display: flex; justify-content: space-between; align-items: center;
-        }
-        .checkout-btn {
-            background: var(--btn-bg); color: var(--btn-text);
-            padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;
-        }
+        body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 15px; transition: all 0.3s ease; }
+        .control-bar { display: flex; justify-content: space-between; margin-bottom: 20px; gap: 10px; }
+        .control-btn { background: var(--card-bg); border: 1px solid var(--primary); color: var(--text-color); padding: 8px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; font-weight: bold; box-shadow: var(--border-glow); }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { margin: 0; font-size: 26px; letter-spacing: 1px; }
+        .nav-tabs { display: flex; justify-content: space-around; background: var(--card-bg); border-top: 1px solid var(--primary); position: fixed; bottom: 0; left: 0; right: 0; padding: 10px 0; box-shadow: var(--border-glow); }
+        .tab-btn { background: none; border: none; color: var(--sub-text); font-size: 14px; font-weight: bold; cursor: pointer; }
+        .tab-btn.active { color: var(--primary); text-decoration: underline; }
+        .page-content { display: none; margin-bottom: 70px; }
+        .page-content.active { display: block; }
+        .product-card { background: var(--card-bg); border: 1px solid var(--primary); border-radius: 14px; padding: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--border-glow); }
+        .product-details h3 { margin: 0 0 5px 0; font-size: 18px; }
+        .product-details p { margin: 0; color: var(--sub-text); font-size: 13px; }
+        .action-btn { background: linear-gradient(135deg, var(--primary), #4b0082); color: #fff; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .support-box { background: var(--card-bg); border: 1px solid var(--primary); border-radius: 12px; padding: 20px; text-align: center; box-shadow: var(--border-glow); }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h2 style="margin: 0;">SFA PLUS</h2>
-        <div class="controls">
-            <span id="themeToggle" onclick="toggleTheme()">☀️ Dark</span>
-            <span id="langToggle" onclick="toggleLang()">English</span>
-        </div>
+    <div class="control-bar">
+        <button class="control-btn" id="langBtn" onclick="toggleLanguage()">English</button>
+        <button class="control-btn" id="themeBtn" onclick="toggleTheme()">☀️ وضع أبيض</button>
     </div>
 
-    <div class="wallet-info">
-        <span class="lang-text" data-ar="رصيدك:" data-en="Balance:">رصيدك:</span> <span id="userBalance">0.00</span> $
-    </div>
-
-    <div id="products-container">
-        <div class="product">
-            <div class="product-info">
-                <h3>iPhone plus</h3>
-                <span class="lang-text" data-ar="السعر: 6.00 $" data-en="Price: 6.00 $">السعر: 6.00 $</span><br>
-                <span class="stock-badge lang-text" data-ar="متوفر:" data-en="Stock:">متوفر:</span> <span id="stk_iphone">0</span>
-            </div>
-            <div class="qty-controls">
-                <button onclick="updateQty('iphone', -1)">-</button>
-                <span id="qty_iphone">0</span>
-                <button onclick="updateQty('iphone', 1)">+</button>
-            </div>
+    <div id="storePage" class="page-content active">
+        <div class="header">
+            <h1 id="mainTitle">SFA Plus Store ✦</h1>
+            <p id="mainDesc">المتجر الأسرع والأقوى لخدمات البلس التلقائية</p>
         </div>
-        <div class="product">
-            <div class="product-info">
-                <h3>iPad plus apple</h3>
-                <span class="lang-text" data-ar="السعر: 4.00 $" data-en="Price: 4.00 $">السعر: 4.00 $</span><br>
-                <span class="stock-badge lang-text" data-ar="متوفر:" data-en="Stock:">متوفر:</span> <span id="stk_ipad">0</span>
+        <div class="products-container">
+            <div class="product-card">
+                <div class="product-details">
+                    <h3>iPhone Plus </h3>
+                    <p id="p1">اشتراك بلس للايفون حقيقي وفوري</p>
+                </div>
+                <button class="action-btn" onclick="buyProcess('iphone', 'iPhone Plus')" id="b1">شراء</button>
             </div>
-            <div class="qty-controls">
-                <button onclick="updateQty('ipad', -1)">-</button>
-                <span id="qty_ipad">0</span>
-                <button onclick="updateQty('ipad', 1)">+</button>
+            <div class="product-card">
+                <div class="product-details">
+                    <h3>iPad Apple Plus 📱</h3>
+                    <p id="p2">اشتراك بلس للايباد بأعلى كفاءة</p>
+                </div>
+                <button class="action-btn" onclick="buyProcess('ipad', 'iPad Apple Plus')" id="b2">شراء</button>
             </div>
-        </div>
-        <div class="product">
-            <div class="product-info">
-                <h3>Android plus</h3>
-                <span class="lang-text" data-ar="السعر: 4.50 $" data-en="Price: 4.50 $">السعر: 4.50 $</span><br>
-                <span class="stock-badge lang-text" data-ar="متوفر:" data-en="Stock:">متوفر:</span> <span id="stk_android">0</span>
+            <div class="product-card">
+                <div class="product-details">
+                    <h3>Android Plus 🤖</h3>
+                    <p id="p3">تطبيقات بلس متطورة للأندرويد</p>
+                </div>
+                <button class="action-btn" onclick="buyProcess('android', 'Android Plus')" id="b3">شراء</button>
             </div>
-            <div class="qty-controls">
-                <button onclick="updateQty('android', -1)">-</button>
-                <span id="qty_android">0</span>
-                <button onclick="updateQty('android', 1)">+</button>
-            </div>
-        </div>
-        <div class="product">
-            <div class="product-info">
-                <h3>Snapchat plus</h3>
-                <span class="lang-text" data-ar="السعر: 3.50 $" data-en="Price: 3.50 $">السعر: 3.50 $</span><br>
-                <span class="stock-badge lang-text" data-ar="متوفر:" data-en="Stock:">متوفر:</span> <span id="stk_snapchat">0</span>
-            </div>
-            <div class="qty-controls">
-                <button onclick="updateQty('snapchat', -1)">-</button>
-                <span id="qty_snapchat">0</span>
-                <button onclick="updateQty('snapchat', 1)">+</button>
+            <div class="product-card">
+                <div class="product-details">
+                    <h3>Snapchat Plus 👻</h3>
+                    <p id="p4">ميزات بلس الحصرية لحساب السناب</p>
+                </div>
+                <button class="action-btn" onclick="buyProcess('snapchat', 'Snapchat Plus')" id="b4">شراء</button>
             </div>
         </div>
     </div>
 
-    <div style="height: 80px;"></div> <div class="cart-summary">
-        <div>
-            <b class="lang-text" data-ar="الإجمالي:" data-en="Total:">الإجمالي:</b> <span id="totalPrice">0.00</span> $
+    <!-- باقي الواجهات -->
+    <div id="cartPage" class="page-content">
+        <div class="header"><h1 id="cartTitle">عربة التسوق 🛒</h1></div>
+        <div class="support-box" id="cartEmpty">لا توجد طلبات معلقة حالياً. عمليات الشراء تنفذ وتُسلم فوراً.</div>
+    </div>
+    <div id="supportPage" class="page-content">
+        <div class="header"><h1 id="supportTitle">الدعم الفني 🛠️</h1></div>
+        <div class="support-box">
+            <p id="supportDesc">هل تواجه مشكلة في كود التفعيل أو الشحن؟ نحن هنا لمساعدتك.</p>
+            <button class="action-btn" onclick="window.open('https://t.me/your_support_username')" id="supportBtn">تواصل مع الدعم الفني</button>
         </div>
-        <button class="checkout-btn lang-text" data-ar="إتمام الشراء 🛒" data-en="Checkout 🛒" onclick="checkout()">إتمام الشراء 🛒</button>
+    </div>
+
+    <div class="nav-tabs">
+        <button class="tab-btn active" id="tabStore" onclick="switchTab('storePage', this)">المتجر</button>
+        <button class="tab-btn" id="tabCart" onclick="switchTab('cartPage', this)">العربة</button>
+        <button class="tab-btn" id="tabSupport" onclick="switchTab('supportPage', this)">الدعم</button>
     </div>
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
-
         let currentLang = 'ar';
-        const prices = { iphone: 6.0, ipad: 4.0, android: 4.5, snapchat: 3.5 };
-        const cart = { iphone: 0, ipad: 0, android: 0, snapchat: 0 };
-        const stock = { iphone: 0, ipad: 0, android: 0, snapchat: 0 };
-
-        // قراءة البيانات المرسلة من البوت
-        const urlParams = new URLSearchParams(window.location.search);
-        document.getElementById('userBalance').innerText = urlParams.get('bal') || '0.00';
-        
-        stock.iphone = parseInt(urlParams.get('stk_iph')) || 0;
-        stock.ipad = parseInt(urlParams.get('stk_ipa')) || 0;
-        stock.android = parseInt(urlParams.get('stk_and')) || 0;
-        stock.snapchat = parseInt(urlParams.get('stk_snp')) || 0;
-
-        document.getElementById('stk_iphone').innerText = stock.iphone;
-        document.getElementById('stk_ipad').innerText = stock.ipad;
-        document.getElementById('stk_android').innerText = stock.android;
-        document.getElementById('stk_snapchat').innerText = stock.snapchat;
-
-        function updateQty(item, change) {
-            let newQty = cart[item] + change;
-            if (newQty >= 0 && newQty <= stock[item]) {
-                cart[item] = newQty;
-                document.getElementById('qty_' + item).innerText = cart[item];
-                calculateTotal();
-            }
-        }
-
-        function calculateTotal() {
-            let total = 0;
-            for (let item in cart) { total += cart[item] * prices[item]; }
-            document.getElementById('totalPrice').innerText = total.toFixed(2);
-        }
-
-        function checkout() {
-            let totalQty = cart.iphone + cart.ipad + cart.android + cart.snapchat;
-            if (totalQty === 0) {
-                tg.showAlert(currentLang === 'ar' ? "السلة فارغة!" : "Cart is empty!");
-                return;
-            }
-            tg.sendData(JSON.stringify({ cart: cart }));
-            tg.close();
-        }
 
         function toggleTheme() {
-            document.body.classList.toggle('dark-theme');
-            let isDark = document.body.classList.contains('dark-theme');
-            document.getElementById('themeToggle').innerText = isDark ? "🌙 Light" : "☀️ Dark";
+            document.body.classList.toggle('light-theme');
+            let themeBtn = document.getElementById('themeBtn');
+            themeBtn.innerText = document.body.classList.contains('light-theme') ? 
+                (currentLang === 'ar' ? "🌙 وضع داكن" : "🌙 Dark Mode") : 
+                (currentLang === 'ar' ? "☀️ وضع أبيض" : "☀️ Light Mode");
         }
 
-        function toggleLang() {
-            currentLang = currentLang === 'ar' ? 'en' : 'ar';
-            document.getElementById('langToggle').innerText = currentLang === 'ar' ? 'English' : 'العربية';
-            document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+        function toggleLanguage() {
+            let langBtn = document.getElementById('langBtn');
+            let themeBtn = document.getElementById('themeBtn');
             
-            document.querySelectorAll('.lang-text').forEach(el => {
-                el.innerText = el.getAttribute('data-' + currentLang);
+            if (currentLang === 'ar') {
+                currentLang = 'en';
+                document.documentElement.dir = 'ltr';
+                langBtn.innerText = "العربية";
+                themeBtn.innerText = document.body.classList.contains('light-theme') ? "🌙 Dark Mode" : "☀️ Light Mode";
+                
+                document.getElementById('mainTitle').innerText = "SFA Plus Store ✦";
+                document.getElementById('mainDesc').innerText = "Automated Plus store";
+                document.getElementById('cartTitle').innerText = "Shopping Cart 🛒";
+                document.getElementById('cartEmpty').innerText = "Instant delivery. No pending items.";
+                document.getElementById('supportTitle').innerText = "Support 🛠️";
+                document.getElementById('supportDesc').innerText = "Facing issues? We are here to help.";
+                document.getElementById('supportBtn').innerText = "Contact Support";
+                document.getElementById('tabStore').innerText = "Store";
+                document.getElementById('tabCart').innerText = "Cart";
+                document.getElementById('tabSupport').innerText = "Support";
+                
+                ['b1','b2','b3','b4'].forEach(id => document.getElementById(id).innerText = "Buy");
+            } else {
+                currentLang = 'ar';
+                document.documentElement.dir = 'rtl';
+                langBtn.innerText = "English";
+                themeBtn.innerText = document.body.classList.contains('light-theme') ? "🌙 وضع داكن" : "☀️ وضع أبيض";
+                
+                document.getElementById('mainTitle').innerText = "SFA Plus Store ✦";
+                document.getElementById('mainDesc').innerText = "المتجر الأسرع والأقوى لخدمات البلس";
+                document.getElementById('cartTitle').innerText = "عربة التسوق 🛒";
+                document.getElementById('cartEmpty').innerText = "لا توجد طلبات معلقة حالياً.";
+                document.getElementById('supportTitle').innerText = "الدعم الفني 🛠️";
+                document.getElementById('supportDesc').innerText = "هل تواجه مشكلة؟ نحن هنا للمساعدة.";
+                document.getElementById('supportBtn').innerText = "تواصل الدعم";
+                document.getElementById('tabStore').innerText = "المتجر";
+                document.getElementById('tabCart').innerText = "العربة";
+                document.getElementById('tabSupport').innerText = "الدعم";
+                
+                ['b1','b2','b3','b4'].forEach(id => document.getElementById(id).innerText = "شراء");
+            }
+        }
+
+        function switchTab(pageId, btn) {
+            let pages = document.getElementsByClassName('page-content');
+            for(let i=0; i<pages.length; i++) pages[i].classList.remove('active');
+            document.getElementById(pageId).classList.add('active');
+
+            let tabs = document.getElementsByClassName('tab-btn');
+            for(let i=0; i<tabs.length; i++) tabs[i].classList.remove('active');
+            btn.classList.add('active');
+        }
+
+        // التعديل الجذري هنا ليتوافق مع نظام البوت
+        function buyProcess(itemKey, itemName) {
+            let confirmMsg = currentLang === 'ar' ? `هل تؤكد شراء ${itemName}؟` : `Confirm purchase for ${itemName}?`;
+            tg.showConfirm(confirmMsg, function(isConfirmed) {
+                if (isConfirmed) {
+                    // إرسال البيانات كـ JSON ليتعرف عليها البوت
+                    let payload = {
+                        cart: {}
+                    };
+                    payload.cart[itemKey] = 1; // كمية 1 للمنتج المختار
+                    tg.sendData(JSON.stringify(payload)); 
+                }
             });
         }
     </script>
