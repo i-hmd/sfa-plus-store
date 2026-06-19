@@ -3,158 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SFA Enterprise Live Store</title>
+    <title>ABUJI Cart</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { purple: { 900: '#0e061f', 800: '#1b0d3a', 600: '#6c5ce7' } } } } }
-    </script>
     <style>
-        .rgb-border {
-            position: relative;
-            background: #150b2e;
-            border-radius: 12px;
-        }
-        .rgb-border::before {
-            content: "";
-            position: absolute;
-            top: -2px; left: -2px; right: -2px; bottom: -2px;
-            background: linear-gradient(45deg, #ff00cc, #3333ff, #00ffcc, #ff00cc);
-            background-size: 400%;
-            z-index: -1;
-            filter: blur(4px);
-            border-radius: 14px;
-            animation: glowing 12s linear infinite;
-            opacity: 0.8;
-        }
-        @keyframes glowing { 0% { background-position: 0 0; } 50% { background-position: 400% 0; } 100% { background-position: 0 0; } }
         body.dark { background-color: #0b0518; color: white; }
-        body.light { background-color: #f5f6fa; color: #0b0518; }
-        .glass-panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
-        .light .glass-panel { background: rgba(0, 0, 0, 0.02); border: 1px solid rgba(0, 0, 0, 0.08); }
+        .glass-panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .item-card { background: #150b2e; border-radius: 12px; padding: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #3333ff; }
     </style>
 </head>
-<body class="dark transition-colors duration-300 min-h-screen font-sans pb-32">
+<body class="dark font-sans pb-32 p-4">
 
-    <!-- شريط الرأس والتحكم ومعلومات العميل الفورية -->
-    <div class="flex justify-between items-center p-4 glass-panel sticky top-0 z-50 shadow-lg">
-        <button id="toggleLang" class="font-bold text-xs bg-purple-600 px-3 py-1.5 rounded-full text-white shadow">English</button>
-        <h1 id="storeTitle" class="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-purple-400">SFA STORE</h1>
-        <button id="toggleTheme" class="font-bold text-xs bg-gray-800 text-white px-3 py-1.5 rounded-full">☀️/🌙</button>
+    <!-- معلومات العميل الحقيقية الممررة من البوت -->
+    <div class="glass-panel p-4 rounded-xl mb-6 flex justify-between items-center">
+        <div>
+            <p id="bal-label" class="text-xs text-gray-400">الرصيد المتاح:</p>
+            <p id="live-balance" class="text-xl font-bold text-green-400">0.00 USDT</p>
+        </div>
+        <div class="bg-blue-600 px-3 py-1 rounded-full text-xs font-bold" id="lang-indicator">AR</div>
     </div>
 
-    <!-- بطاقة معلومات الحساب الحقيقية المسحوبة من قاعدة بيانات البوت -->
-    <div class="p-4 mx-4 mt-4 rounded-xl glass-panel border border-purple-500/30 bg-purple-900/20 shadow-inner">
-        <div class="flex justify-between items-center">
-            <div>
-                <p id="userBalanceLabel" class="text-xs opacity-60">رصيدك الحقيقي الجاهز للشراء:</p>
-                <p id="liveBalanceDisplay" class="text-2xl font-black text-yellow-400">0.00 USDT</p>
-            </div>
-            <div class="text-right">
-                <p id="uidLabel" class="text-xs opacity-40">User ID</p>
-                <p id="uidDisplay" class="text-xs font-mono text-purple-300">00000000</p>
-            </div>
+    <!-- المنتجات المتعددة في السلة -->
+    <div class="item-card shadow-lg">
+        <div>
+            <h2 class="text-lg font-bold">iPhone Plus </h2>
+            <p class="text-sm text-gray-300" id="p-iphone">6.00 USDT</p>
         </div>
-    </div>
-
-    <div class="p-4 space-y-4">
-        <!-- كارت الايفون -->
-        <div class="rgb-border p-4 flex justify-between items-center shadow-md">
-            <div>
-                <h2 class="text-lg font-black text-white">iPhone Plus </h2>
-                <p class="text-xs text-green-400 mt-1" id="price-iphone">السعر الحقيقي: 6.00 USDT</p>
-            </div>
-            <div class="flex items-center space-x-3 rtl:space-x-reverse">
-                <button onclick="updateCart('iphone', -1)" class="bg-red-500/80 hover:bg-red-600 active:scale-95 text-white w-8 h-8 rounded-full font-black text-lg transition shadow-md">-</button>
-                <span id="qty-iphone" class="font-black text-lg w-4 text-center">0</span>
-                <button onclick="updateCart('iphone', 1)" class="bg-green-500/80 hover:bg-green-600 active:scale-95 text-white w-8 h-8 rounded-full font-black text-lg transition shadow-md">+</button>
-            </div>
-        </div>
-
-        <!-- كارت الايباد -->
-        <div class="rgb-border p-4 flex justify-between items-center shadow-md">
-            <div>
-                <h2 class="text-lg font-black text-white">iPad Plus 📱</h2>
-                <p class="text-xs text-green-400 mt-1" id="price-ipad">السعر الحقيقي: 4.00 USDT</p>
-            </div>
-            <div class="flex items-center space-x-3 rtl:space-x-reverse">
-                <button onclick="updateCart('ipad', -1)" class="bg-red-500/80 hover:bg-red-600 active:scale-95 text-white w-8 h-8 rounded-full font-black text-lg transition shadow-md">-</button>
-                <span id="qty-ipad" class="font-black text-lg w-4 text-center">0</span>
-                <button onclick="updateCart('ipad', 1)" class="bg-green-500/80 hover:bg-green-600 active:scale-95 text-white w-8 h-8 rounded-full font-black text-lg transition shadow-md">+</button>
-            </div>
-        </div>
-
-        <!-- كارت الاندرويد -->
-        <div class="rgb-border p-4 flex justify-between items-center shadow-md">
-            <div>
-                <h2 class="text-lg font-black text-white">Android Plus 🤖</h2>
-                <p class="text-xs text-green-400 mt-1" id="price-android">السعر الحقيقي: 4.50 USDT</p>
-            </div>
-            <div class="flex items-center space-x-3 rtl:space-x-reverse">
-                <button onclick="updateCart('android', -1)" class="bg-red-500/80 hover:bg-red-600 active:scale-95 text-white w-8 h-8 rounded-full font-black text-lg transition shadow-md">-</button>
-                <span id="qty-android" class="font-black text-lg w-4 text-center">0</span>
-                <button onclick="updateCart('android', 1)" class="bg-green-500/80 hover:bg-green-600 active:scale-95 text-white w-8 h-8 rounded-full font-black text-lg transition shadow-md">+</button>
-            </div>
+        <div class="flex items-center space-x-3 rtl:space-x-reverse">
+            <button onclick="updateCart('iphone', -1)" class="bg-red-500 w-8 h-8 rounded-full font-bold">-</button>
+            <span id="qty-iphone" class="font-bold text-lg w-4 text-center">0</span>
+            <button onclick="updateCart('iphone', 1)" class="bg-green-500 w-8 h-8 rounded-full font-bold">+</button>
         </div>
     </div>
 
-    <!-- شريط الخروج والحساب الفعلي للفاتورة والخصومات التلقائية المربوطة بالبوت -->
-    <div class="fixed bottom-0 left-0 right-0 glass-panel p-4 rounded-t-2xl shadow-2xl border-t border-purple-500/20 bg-purple-900/90 z-40">
-        <div class="flex justify-between items-center mb-3">
-            <span class="font-black text-md text-purple-200" id="totalText">إجمالي الفاتورة:</span>
+    <div class="item-card shadow-lg">
+        <div>
+            <h2 class="text-lg font-bold">iPad Plus 📱</h2>
+            <p class="text-sm text-gray-300" id="p-ipad">4.00 USDT</p>
+        </div>
+        <div class="flex items-center space-x-3 rtl:space-x-reverse">
+            <button onclick="updateCart('ipad', -1)" class="bg-red-500 w-8 h-8 rounded-full font-bold">-</button>
+            <span id="qty-ipad" class="font-bold text-lg w-4 text-center">0</span>
+            <button onclick="updateCart('ipad', 1)" class="bg-green-500 w-8 h-8 rounded-full font-bold">+</button>
+        </div>
+    </div>
+
+    <div class="item-card shadow-lg">
+        <div>
+            <h2 class="text-lg font-bold">Android Plus 🤖</h2>
+            <p class="text-sm text-gray-300" id="p-android">4.50 USDT</p>
+        </div>
+        <div class="flex items-center space-x-3 rtl:space-x-reverse">
+            <button onclick="updateCart('android', -1)" class="bg-red-500 w-8 h-8 rounded-full font-bold">-</button>
+            <span id="qty-android" class="font-bold text-lg w-4 text-center">0</span>
+            <button onclick="updateCart('android', 1)" class="bg-green-500 w-8 h-8 rounded-full font-bold">+</button>
+        </div>
+    </div>
+
+    <!-- شريط الدفع والخصم -->
+    <div class="fixed bottom-0 left-0 right-0 glass-panel p-4 rounded-t-2xl z-50 bg-[#0b0518]">
+        <div class="flex justify-between items-center mb-2">
+            <span class="font-bold" id="total-text">إجمالي السلة:</span>
             <div class="text-left">
-                <span id="totalPrice" class="font-black text-2xl text-green-400">0.00 USDT</span>
-                <p id="discountLabel" class="text-[10px] text-pink-400 font-bold bg-pink-950/40 px-2 py-0.5 rounded mt-0.5 hidden">🔥 تم تطبيق خصم الجملة التلقائي!</p>
+                <span id="totalPrice" class="font-bold text-2xl text-green-400">0.00 USDT</span>
+                <p id="discountLabel" class="text-xs text-pink-400 font-bold hidden">تم تطبيق خصم 5%!</p>
             </div>
         </div>
-        <button id="checkoutBtn" onclick="checkout()" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-black py-3.5 rounded-xl shadow-lg transition transform active:scale-[0.99] opacity-40 cursor-not-allowed" disabled>إتمام وتأكيد الشراء الفوري</button>
+        <button id="checkoutBtn" onclick="checkout()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl opacity-50 cursor-not-allowed" disabled>إتمام الدفع</button>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        tg.ready();
 
-        // فك تشفير وفحص الباراميترز الحقيقية الممررة من البوت
         const urlParams = new URLSearchParams(window.location.search);
-        const currentBalance = parseFloat(urlParams.get('bal')) || 0.0;
-        const currentLang = urlParams.get('lang') || 'ar';
-        const currentUid = urlParams.get('uid') || '00000000';
+        const currentBalance = parseFloat(urlParams.get('bal')) || 0;
+        const lang = urlParams.get('lang') || 'ar';
+        
+        document.getElementById('live-balance').innerText = `${currentBalance.toFixed(2)} USDT`;
+        document.getElementById('lang-indicator').innerText = lang.toUpperCase();
 
-        document.getElementById('liveBalanceDisplay').innerText = `${currentBalance.toFixed(2)} USDT`;
-        document.getElementById('uidDisplay').innerText = currentUid;
+        if(lang === 'en') {
+            document.documentElement.dir = 'ltr';
+            document.getElementById('bal-label').innerText = "Available Balance:";
+            document.getElementById('total-text').innerText = "Cart Total:";
+            document.getElementById('checkoutBtn').innerText = "Checkout";
+            document.getElementById('discountLabel').innerText = "5% Discount Applied!";
+        }
 
         let cart = { iphone: 0, ipad: 0, android: 0 };
         const prices = { iphone: 6.0, ipad: 4.0, android: 4.5 };
-        let isArabic = currentLang === 'ar';
-
-        const texts = {
-            ar: { price: "السعر الحقيقي:", total: "إجمالي الفاتورة:", checkout: "إتمام وتأكيد الشراء الفوري", balanceLabel: "رصيدك الحقيقي الجاهز للشراء:" },
-            en: { price: "Live Price:", total: "Final Total:", checkout: "Confirm & Checkout Instant", balanceLabel: "Your Live Wallet Balance:" }
-        };
-
-        // إدارة ضبط لغة الواجهة التلقائية بناءً على البوت لضمان عدم حدوث مشاكل
-        function applyLanguage() {
-            document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
-            document.getElementById('toggleLang').innerText = isArabic ? "English" : "عربي";
-            document.getElementById('totalText').innerText = texts[isArabic ? 'ar' : 'en'].total;
-            document.getElementById('checkoutBtn').innerText = texts[isArabic ? 'ar' : 'en'].checkout;
-            document.getElementById('userBalanceLabel').innerText = texts[isArabic ? 'ar' : 'en'].balanceLabel;
-            
-            document.getElementById('price-iphone').innerText = `${texts[isArabic ? 'ar' : 'en'].price} ${prices.iphone.toFixed(2)} USDT`;
-            document.getElementById('price-ipad').innerText = `${texts[isArabic ? 'ar' : 'en'].price} ${prices.ipad.toFixed(2)} USDT`;
-            document.getElementById('price-android').innerText = `${texts[isArabic ? 'ar' : 'en'].price} ${prices.android.toFixed(2)} USDT`;
-        }
-
-        document.getElementById('toggleLang').onclick = () => {
-            isArabic = !isArabic;
-            applyLanguage();
-        };
-
-        document.getElementById('toggleTheme').onclick = () => {
-            document.body.classList.toggle('dark');
-            document.body.classList.toggle('light');
-        };
 
         function updateCart(item, change) {
             if (cart[item] + change >= 0) {
@@ -166,18 +104,13 @@
 
         function calculateTotal() {
             let totalQty = cart.iphone + cart.ipad + cart.android;
-            let discountPercent = 0.0;
-
-            if (totalQty >= 10) discountPercent = 0.25; // 25% خصم جملة لتشجيع المشترين
-            else if (totalQty >= 5) discountPercent = 0.10; // 10% خصم
-
+            
+            // تطبيق خصم 5% حصراً إذا كانت الكمية أكبر من 5
+            let discountPercent = totalQty > 5 ? 0.05 : 0.0;
+            
             let finalTotal = 0.0;
             for (let item in cart) {
-                let qty = cart[item];
-                if (qty > 0) {
-                    let priceAfterDiscount = prices[item] * (1 - discountPercent);
-                    finalTotal += (priceAfterDiscount * qty);
-                }
+                finalTotal += (prices[item] * (1 - discountPercent) * cart[item]);
             }
 
             document.getElementById('totalPrice').innerText = `${finalTotal.toFixed(2)} USDT`;
@@ -187,12 +120,12 @@
 
             if (totalQty > 0) {
                 btn.disabled = false;
-                btn.classList.remove('opacity-40', 'cursor-not-allowed');
-                if (discountPercent > 0) discLabel.classList.remove('hidden');
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                if(discountPercent > 0) discLabel.classList.remove('hidden');
                 else discLabel.classList.add('hidden');
             } else {
                 btn.disabled = true;
-                btn.classList.add('opacity-40', 'cursor-not-allowed');
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
                 discLabel.classList.add('hidden');
             }
         }
@@ -200,18 +133,9 @@
         function checkout() {
             let totalQty = cart.iphone + cart.ipad + cart.android;
             if (totalQty === 0) return;
-            
-            // إرسال حزم البيانات الحقيقية للبوت فوراً والتنفيذ الآني بدون لاق
-            const payload = {
-                cart: cart,
-                totalItems: totalQty
-            };
-            tg.sendData(JSON.stringify(payload));
-            tg.close(); // إغلاق النافذة التلقائي فور الإرسال لزيادة الانسيابية
+            tg.sendData(JSON.stringify({ cart: cart, totalItems: totalQty }));
+            tg.close();
         }
-
-        // تشغيل اللغة الافتراضية المناسبة فور الفتح للعميل لبث الانسيابية الفورية
-        applyLanguage();
     </script>
 </body>
 </html>
